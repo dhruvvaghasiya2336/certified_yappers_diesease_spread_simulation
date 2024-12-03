@@ -1,0 +1,64 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
+from scipy.integrate import odeint
+
+# SIR Model Differential Equations.
+def deriv(y, t, N, beta, gamma):
+    S, I, R = y
+    dSdt = -beta * S * I / N
+    dIdt = beta * S * I / N - gamma * I
+    dRdt = gamma * I
+    return dSdt, dIdt, dRdt
+
+# Initial conditions and parameters
+N = 1000           # Total population
+I0 = 1             # Initial number of infected individuals
+R0 = 0             # Initial number of recovered individuals
+S0 = N - I0 - R0   # Initial number of susceptible individuals
+beta = 0.3         # Infection rate per person
+gamma = 0.1        # Recovery rate
+t = np.linspace(0, 160, 160)  # Time from 0 to 160 days
+
+# Initial conditions vector: S0, I0, R0
+y0 = S0, I0, R0
+
+# Solve the differential equations using odeint
+ret = odeint(deriv, y0, t, args=(N, beta, gamma))
+S, I, R = ret.T
+
+# Set up the figure and axis
+fig, ax = plt.subplots(figsize=(10, 6))
+ax.set_xlim(0, t.max())
+ax.set_ylim(0, N)
+ax.set_title('Spread of Contagious Disease (Animation)')
+ax.set_xlabel('Time /days')
+ax.set_ylabel('Number of individuals')
+line_susceptible, = ax.plot([], [], label='Susceptible', color='blue')
+line_infected, = ax.plot([], [], label='Infected', color='red')
+line_recovered, = ax.plot([], [], label='Recovered', color='green')
+
+# Function to initialize the plot
+def init():
+    line_susceptible.set_data([], [])
+    line_infected.set_data([], [])
+    line_recovered.set_data([], [])
+    return line_susceptible, line_infected, line_recovered
+
+# Function to update the plot for each frame
+def update(frame):
+    day = t[:frame]
+    susceptible = S[:frame]
+    infected = I[:frame]
+    recovered = R[:frame]
+
+    line_susceptible.set_data(day, susceptible)
+    line_infected.set_data(day, infected)
+    line_recovered.set_data(day, recovered)
+    return line_susceptible, line_infected, line_recovered
+
+# Create the animation
+ani = FuncAnimation(fig, update, frames=len(t), init_func=init, blit=True)
+
+# Save the animation as a video
+ani.save('disease_spread_animation.mp4', writer='ffmpeg', fps=10)
