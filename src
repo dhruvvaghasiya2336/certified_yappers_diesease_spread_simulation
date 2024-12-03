@@ -1,0 +1,41 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.integrate import odeint
+
+# SIR Model Differential Equations.
+def deriv(y, t, N, beta, gamma):
+    S, I, R = y
+    dSdt = -beta * S * I / N
+    dIdt = beta * S * I / N - gamma * I
+    dRdt = gamma * I
+    return dSdt, dIdt, dRdt
+
+# Initial number of individuals, population size (N), and parameters.
+N = 1000           # Total population
+I0 = 1             # Initial number of infected individuals
+R0 = 0             # Initial number of recovered individuals
+S0 = N - I0 - R0   # Initial number of susceptible individuals
+beta = 0.3         # Infection rate per person
+gamma = 0.1        # Recovery rate
+
+# Time vector (days)
+t = np.linspace(0, 160, 160)
+
+# Initial conditions vector: S0, I0, R0
+y0 = S0, I0, R0
+
+# Solve the differential equations using odeint
+ret = odeint(deriv, y0, t, args=(N, beta, gamma))
+S, I, R = ret.T
+
+# Plot the data
+plt.figure(figsize=(10,6))
+plt.plot(t, S, label="Susceptible", color="blue")
+plt.plot(t, I, label="Infected", color="red")
+plt.plot(t, R, label="Recovered", color="green")
+plt.title('Spread of Contagious Disease (SIR Model)')
+plt.xlabel('Time /days')
+plt.ylabel('Number of individuals')
+plt.legend()
+plt.grid(True)
+plt.show()
